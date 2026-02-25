@@ -9,19 +9,21 @@ from datetime import datetime
 load_dotenv()
 
 # Leer la clave API de forma segura
-api_key = None
-try:
-    api_key = st.secrets["GROQ_API_KEY"]          # ← Prioridad: secrets de Streamlit Cloud
-except KeyError:
-    api_key = os.getenv("GROQ_API_KEY")           # ← Fallback: .env local
+api_key = st.secrets.get("GROQ_API_KEY")  # ← Método recomendado y seguro para la nube
+
+# Fallback para local (.env)
+if api_key is None:
+    api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
     st.error("""
-    **GROQ_API_KEY no encontrada.**  
-    - En Streamlit Cloud → ve a Advanced settings → Secrets y agrega exactamente:  
-      GROQ_API_KEY = "gsk_tu-clave-real-completa"  
-    - En local → crea archivo .env con:  
-      GROQ_API_KEY=gsk_tu-clave-real-sin-comillas  
+    **GROQ_API_KEY NO ENCONTRADA**  
+    1. Ve a tu app en https://share.streamlit.io → Manage app → Secrets  
+    2. Borra todo y pega exactamente:  
+       GROQ_API_KEY = "gsk_tu-clave-real-completa"  
+    3. Clic en Save  
+    4. Luego Reboot app o Redeploy  
+    En local: crea .env con GROQ_API_KEY=gsk_tu-clave-sin-comillas
     """)
     st.stop()
 
