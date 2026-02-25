@@ -5,12 +5,24 @@ from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime
 
+# Cargar .env solo en local (no afecta la nube)
 load_dotenv()
 
-# Verifica que la key exista (para evitar negro silencioso)
-api_key = os.getenv("GROQ_API_KEY")
+# Leer la clave API de forma segura
+api_key = None
+try:
+    api_key = st.secrets["GROQ_API_KEY"]          # ← Prioridad: secrets de Streamlit Cloud
+except KeyError:
+    api_key = os.getenv("GROQ_API_KEY")           # ← Fallback: .env local
+
 if not api_key:
-    st.error("Error: No se encontró GROQ_API_KEY en el archivo .env. Crea el archivo con tu key.")
+    st.error("""
+    **GROQ_API_KEY no encontrada.**  
+    - En Streamlit Cloud → ve a Advanced settings → Secrets y agrega exactamente:  
+      GROQ_API_KEY = "gsk_tu-clave-real-completa"  
+    - En local → crea archivo .env con:  
+      GROQ_API_KEY=gsk_tu-clave-real-sin-comillas  
+    """)
     st.stop()
 
 client = Groq(api_key=api_key)
@@ -68,7 +80,7 @@ if prompt := st.chat_input("Ask about TEMPLO gym (schedules, Power Plate, calist
         try:
             stream = client.chat.completions.create(
                 messages=st.session_state.messages,
-                model="llama-3.3-70b-versatile",   
+                model="llama-3.3-70b-versatile",
                 stream=True,
                 temperature=0.8
             )
